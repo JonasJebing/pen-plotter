@@ -14,6 +14,23 @@ pub struct Cli {
 
     #[clap(long, help = "in mm/s", default_value = "1.2")]
     pub velocity: f64,
+
+    #[clap(long, help = "use this flag to perform I/O to the motors")]
+    pub io: bool,
+
+    #[clap(
+        long,
+        help = "device path for the central stepper motor",
+        default_value = "/dev/ttyUSB0"
+    )]
+    pub central: String,
+
+    #[clap(
+        long,
+        help = "device path for the beam stepper motor",
+        default_value = "/dev/ttyUSB1"
+    )]
+    pub beam: String,
 }
 
 fn parse_point(s: &str) -> eyre::Result<Point2<f64>> {

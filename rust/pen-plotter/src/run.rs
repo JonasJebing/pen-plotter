@@ -3,6 +3,7 @@ use crate::{
     motion::Motion,
     named::Named,
     path::{Path, Point},
+    serial,
     stepper::{
         beam::BeamStepper, central::CentralStepper, CurrentStep, DeltaSteps, Stepper, TargetStep,
     },
@@ -10,6 +11,7 @@ use crate::{
 };
 use clap::Parser;
 use log::LevelFilter;
+use serialport::SerialPort;
 use std::{
     fmt::{self, Debug},
     panic::Location,
@@ -35,10 +37,25 @@ fn try_run() -> eyre::Result<()> {
         path: path_from_cli(&cli),
         start: Instant::now(),
     };
-    let join_handles = [
-        spawn_step_through_motion(motion, CentralStepper::default(), log_interval),
-        spawn_step_through_motion(motion, BeamStepper::default(), log_interval),
-    ];
+    let join_handles = if cli.io {
+        [
+            spawn_step_through_motion(
+                motion,
+                CentralStepper::default(),
+                serial_steps(serial::open(&cli.central)?),
+            ),
+            spawn_step_through_motion(
+                motion,
+                BeamStepper::default(),
+                serial_steps(serial::open(&cli.beam)?),
+            ),
+        ]
+    } else {
+        [
+            spawn_step_through_motion(motion, CentralStepper::default(), log_interval),
+            spawn_step_through_motion(motion, BeamStepper::default(), log_interval),
+        ]
+    };
     for h in join_handles {
         exit_on_error(h.join());
     }
@@ -80,8 +97,9 @@ where
         current_step = f(IntervalContext {
             stepper_name: stepper.name(),
             point: target,
-            target_step,
+            current_step,
             delta_steps,
+            target_step,
         })?;
         Ok(())
     })
@@ -91,8 +109,9 @@ where
 struct IntervalContext {
     pub stepper_name: &'static str,
     pub point: Point,
-    pub target_step: TargetStep,
+    pub current_step: CurrentStep,
     pub delta_steps: DeltaSteps,
+    pub target_step: TargetStep,
 }
 
 impl fmt::Display for IntervalContext {
@@ -110,6 +129,22 @@ fn log_interval(interval: IntervalContext) -> eyre::Result<CurrentStep> {
         log::info!("{interval}");
     }
     Ok(CurrentStep(interval.target_step.0))
+}
+
+fn serial_steps(
+    mut serial: Box<dyn SerialPort>,
+) -> impl FnMut(IntervalContext) -> eyre::Result<CurrentStep> + Send {
+    move |interval| {
+        if interval.delta_steps.0 != 0 {
+            log::info!("{interval}");
+            serial::write_steps(&mut serial, interval.delta_steps)?;
+            let current_step = serial::read_current_step(&mut serial)?;
+            log::info!("received {current_step:?}");
+            Ok(current_step)
+        } else {
+            Ok(interval.current_step)
+        }
+    }
 }
 
 #[track_caller]

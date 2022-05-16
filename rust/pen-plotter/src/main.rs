@@ -4,6 +4,7 @@ mod motion;
 mod named;
 mod path;
 mod run;
+mod serial;
 mod stepper;
 mod timer;
 mod vector_2;
