@@ -2,7 +2,7 @@ use clap::Parser;
 use eyre::{eyre, WrapErr};
 use nalgebra::Point2;
 
-const POINT_HELP: &str = "2D point in millimeter, for example 3,7 or 3.0,7.0";
+const POINT_HELP: &str = "2D point in millimeter, for example (3,7) or (3.0,7.0)";
 
 #[derive(Debug, Parser)]
 pub struct Cli {

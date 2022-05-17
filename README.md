@@ -8,7 +8,7 @@ which drives a beam outwards or inwards.
 ## How to run pen-plotter
 
 Use `cargo run -p pen-plotter -- -h` to print help information.
-Use `cargo run -p pen-plotter -- --end 2,-10`
+Use `cargo run -p pen-plotter -- --end (2,-10)`
 to have a basic idea what it would send to the stepper motors.
 
 See https://rustup.rs/ for installing Rust and `cargo`.
