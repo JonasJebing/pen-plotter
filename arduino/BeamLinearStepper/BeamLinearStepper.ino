@@ -21,6 +21,7 @@ void loop() {
     Serial.write(stepCount0);
     Serial.write(stepCount1);
     stepper.step(steps);
+    // read stepCount from motor if available
   }
 }
 
