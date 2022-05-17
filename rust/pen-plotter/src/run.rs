@@ -89,7 +89,9 @@ where
         duration: path.duration()?,
         interval: stepper.min_step_interval(),
     };
-    let mut current_step = CurrentStep(0);
+    let start_step =
+        stepper.delta_steps(CurrentStep(0), stepper.target_step(path.interpolate(0.0))?)?;
+    let mut current_step = CurrentStep(start_step.0);
     interval_timer.for_each_fraction(|fraction| {
         let target = motion.path.interpolate(fraction);
         let target_step = stepper.target_step(target)?;
