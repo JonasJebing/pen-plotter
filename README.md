@@ -1,6 +1,6 @@
 # pen-plotter
 
-An program for controling a simple pen plotter.
+A program for controling a simple pen plotter.
 At the center the plotter has a stepper motor for rotation.
 The distance of the pen from the center is determined by a second stepper motor
 which drives a beam outwards or inwards.
